@@ -145,6 +145,107 @@ fn part1() {
     println!("{accepted_part_rating}");
 }
 
+type PartSpec<'a> = HashMap<&'a str, (i32, i32)>;
+
+fn split_spec_on_condition<'a>(condition: &Condition, mut part_spec: PartSpec<'a>) -> (Option<PartSpec<'a>>, Option<PartSpec<'a>>) {
+    match condition.comparison {
+        Comparison::LessThan => {
+            let value = part_spec.get_mut(condition.variable).unwrap();
+            if value.0 >= condition.value {
+                return (None, Some(part_spec));
+            }
+            else if value.1 < condition.value {
+                return (Some(part_spec), None);
+            }
+            else {
+                // value.0 < condition.value <= value.1
+                let mut spec2 = part_spec.clone();
+                spec2.get_mut(condition.variable).unwrap().1 = condition.value - 1;
+                part_spec.get_mut(condition.variable).unwrap().0 = condition.value;
+                return (Some(spec2), Some(part_spec));
+            }
+        }
+        Comparison::GreaterThan => {
+            let value = part_spec.get_mut(condition.variable).unwrap();
+            if value.1 <= condition.value {
+                return (None, Some(part_spec));
+            }
+            else if value.0 > condition.value {
+                return (Some(part_spec), None);
+            }
+            else {
+                // value.0 <= condition.value < value.1
+                let mut spec2 = part_spec.clone();
+                spec2.get_mut(condition.variable).unwrap().0 = condition.value + 1;
+                part_spec.get_mut(condition.variable).unwrap().1 = condition.value;
+                return (Some(spec2), Some(part_spec));
+            }
+        }
+    }
+}
+
+fn combinations_in_spec(part_spec: &PartSpec) -> i64 {
+    part_spec.values().map(|v| {
+        let range: i64 = (v.1 - v.0 + 1).into(); range
+    }).product::<i64>()
+}
+
+fn combinations_from_outcome(outcome: &Outcome, workflows: &HashMap<&str, Workflow>, part_spec: PartSpec) -> i64 {
+    match outcome {
+        Outcome::Accept => combinations_in_spec(&part_spec),
+        Outcome::Reject => 0,
+        Outcome::Workflow(workflow) => accepted_combinations(workflow, &workflows, part_spec)
+    }
+}
+
+fn accepted_combinations(start: &str, workflows: &HashMap<&str, Workflow>, part_spec: PartSpec) -> i64 {
+    let mut combinations = 0;
+
+    let workflow = workflows.get(start).unwrap();
+
+    let mut current_spec = part_spec;
+
+    for rule in workflow.rules.iter() {
+        match rule {
+            Rule::Direct(outcome) => {
+                combinations += combinations_from_outcome(outcome, &workflows, current_spec);
+                break;
+            },
+            Rule::Condition(condition, outcome) => {
+                let (spec1, spec2) = 
+                    split_spec_on_condition(&condition, current_spec);
+
+                if let Some(spec1) = spec1 {
+                    combinations += combinations_from_outcome(outcome, &workflows, spec1);
+                }
+
+                if let Some(spec2) = spec2 {
+                    current_spec = spec2;
+                } else {
+                    break;
+                }
+            },
+        }
+    }
+
+    return combinations;
+}
+
+fn part2() {
+    let contents = fs::read_to_string("./src/input19.txt").unwrap();
+    
+    let (workflow_str, _) = contents.split_once("\n\n").unwrap();
+
+    let workflows: HashMap<_, _> = workflow_str.lines().map(parse_workflow).map(|w| (w.name, w)).collect();
+
+    let part_spec = 
+        HashMap::from_iter(vec!["x", "m", "a", "s"].iter().map(|k| (*k, (1, 4000))));
+
+    let combinations = accepted_combinations("in", &workflows, part_spec);
+
+    println!("{combinations}");
+}
+
 fn main() {
     part1();
 }
