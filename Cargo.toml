@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 lazy_static = "1.4.0"
+num = "0.4.1"
 regex = "1.10.2"
