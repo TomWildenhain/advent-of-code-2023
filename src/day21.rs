@@ -15,7 +15,6 @@ fn step_in_direction(point: (usize, usize), direction: Direction, width: usize, 
     let (x, y) = point;
     let (dx, dy) = direction;
 
-    // I put a question mark at the end!
     let new_x = x.checked_add_signed(dx)?;
     let new_y = y.checked_add_signed(dy)?;
     if new_x < width && new_y < height {
