@@ -75,7 +75,7 @@ mod rationals {
 
         fn add(self, rhs: Rational) -> Rational {
             return Rational::new(
-                self.numerator * rhs.denominator.clone() + rhs.numerator * self.denominator.clone(), 
+                self.numerator * rhs.denominator.clone() + rhs.numerator * self.denominator.clone(),
                 self.denominator * rhs.denominator)
         }
     }
@@ -139,7 +139,14 @@ mod linear_equations {
 }
 
 mod rles {
-    // RLES = Rational Linear Equation Solver (tm)
+    //   _____  _      ______  _____
+    //  |  __ \| |    |  ____|/ ____|
+    //  | |__) | |    | |__  | (___
+    //  |  _  /| |    |  __|  \___ \
+    //  | | \ \| |____| |____ ____) |
+    //  |_|  \_\______|______|_____/
+    //
+    //  Rational Linear Equation Solver
 
     use super::rationals::Rational;
     use super::linear_equations::*;
@@ -267,7 +274,7 @@ mod rles {
                 variables[t.variable.idx] = Some(t.variable);
             }
         }
-        
+
         let mut matrix: Matrix = system.iter().map(|eqn| eqn_to_row(eqn, num_variables)).collect();
         reduced_row_echelon_form(&mut matrix);
 
@@ -364,21 +371,21 @@ use rationals::Rational;
 use rles::*;
 
 fn make_equation<'a>(
-    pa: &'a Variable, 
-    pb: &'a Variable, 
-    va: &'a Variable, 
-    vb: &'a Variable, 
-    pavb: &'a Variable, 
-    pbva: &'a Variable, 
-    pai: &Rational, 
-    pbi: &Rational, 
-    vai: &Rational, 
+    pa: &'a Variable,
+    pb: &'a Variable,
+    va: &'a Variable,
+    vb: &'a Variable,
+    pavb: &'a Variable,
+    pbva: &'a Variable,
+    pai: &Rational,
+    pbi: &Rational,
+    vai: &Rational,
     vbi: &Rational) -> Equation<'a>
     {
     let one = Rational::int(1);
     let neg_one = Rational::int(-1);
 
-    return Equation { 
+    return Equation {
         lhs: vec![
             Term::new(one, pavb),
             Term::new(-pai.clone(), vb),
@@ -387,7 +394,7 @@ fn make_equation<'a>(
             Term::new(neg_one, pbva),
             Term::new(pbi.clone(), va),
             Term::new(vai.clone(), pb),
-        ], 
+        ],
         rhs: pbi.clone() * vai.clone() - pai.clone() * vbi.clone()
     };
 }
@@ -421,7 +428,7 @@ fn main() {
         let vxi = Rational::int(stone.velocity[0]);
         let vyi = Rational::int(stone.velocity[1]);
         let vzi = Rational::int(stone.velocity[2]);
-        
+
         system.push(make_equation(&px, &py, &vx,& vy, &pxvy, &pyvx, &pxi, &pyi, &vxi, &vyi));
         system.push(make_equation(&py, &pz, &vy,& vz, &pyvz, &pzvy, &pyi, &pzi, &vyi, &vzi));
         system.push(make_equation(&px, &pz, &vx,& vz, &pxvz, &pzvx, &pxi, &pzi, &vxi, &vzi));
